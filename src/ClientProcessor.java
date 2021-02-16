@@ -1,3 +1,4 @@
+
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedInputStream;
@@ -21,7 +22,7 @@ public class ClientProcessor implements Runnable {
     @Override
     public void run() {
 
-        while(!socket.isClosed()){
+        while(!socket.isClosed() && !Thread.currentThread().isInterrupted()){
             try {
                 writer = new PrintWriter(socket.getOutputStream());
                 reader = new BufferedInputStream(socket.getInputStream());
@@ -39,7 +40,11 @@ public class ClientProcessor implements Runnable {
                 System.err.println("\n" + debug);
 
                 //On dit au serveur d'envoyer le message reçu de la part du client
-                serveur.newMsg(response);
+                serveur.newMsg(response, this);
+                if(response.startsWith("__CLS")){
+                    Thread.currentThread().interrupt();
+                    socket.close();
+                }
             } catch (SocketException e){
                 //Connexion interrompue, on s'en fout
             } catch (IOException e){

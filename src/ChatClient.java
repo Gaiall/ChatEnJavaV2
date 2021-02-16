@@ -5,12 +5,17 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.List;
+import java.util.ArrayList;
 
 public class ChatClient {
     private final JTextArea leChat = new JTextArea();
+    private final List<String> listeConnecte = new ArrayList<>();
+    private JTextPane listeDesConnectes = new JTextPane();
 
     public ChatClient() {
         final boolean[] connected = new boolean[]{false};
+
         /*============================================== Le stockage de la Connexion ==============================================*/
         final ClientConnexion[] client = new ClientConnexion[1];
         /*============================================== Creation des boites ==============================================*/
@@ -34,8 +39,8 @@ public class ChatClient {
         JLabel labelDeIP = new JLabel("Adresse IP :");
         JLabel labelDePort = new JLabel("Port :");
         JButton boutonConnecter = new JButton("Connexion");
-        JTextArea listeDesConnectes = new JTextArea();
-        listeDesConnectes.setText("");
+        /*La liste des connectes est globale pour pouvoir la mettre a jour*/
+        listeDesConnectes.setText("Liste des connectés : ");
         /* On rempli le chat avec du vide pour l'affichage */
         for(int i = 0; i < 23; i++){
             leChat.append("\n");
@@ -125,6 +130,8 @@ public class ChatClient {
                 leMessage.setEditable(false);
                 //On en fait un bouton de déconnexion
                 boutonConnecter.setText("Connexion");
+                listeDesConnectes.setText("Liste des connectés : ");
+                listeConnecte.clear();
                 connected[0] = false;
             }
         });
@@ -182,13 +189,16 @@ public class ChatClient {
         zoneDePort.addKeyListener(connexionAvecEnter);
 
         /* Envoie du message quand on appuie sur entrée */
-        leMessage.addKeyListener(new KeyAdapter(){
+        KeyAdapter envoyerAvecEnter = new KeyAdapter(){
             public void keyPressed(KeyEvent event){
                 if(event.getKeyCode()==KeyEvent.VK_ENTER){
                     boutonEnvoyer.doClick();
                 }
             }
-        });
+        };
+
+        leMessage.addKeyListener(envoyerAvecEnter);
+        boutonEnvoyer.addKeyListener(envoyerAvecEnter);
         /* Envoie du message quand on appuie sur le bouton envoyer */
         boutonEnvoyer.addActionListener(e -> {
             String message = leMessage.getText();
@@ -257,5 +267,9 @@ public class ChatClient {
             exception.printStackTrace();
         }
         leChat.append("\n " + msg);
+    }
+
+    public void setConnecte(String listeDeConnecte) {
+        listeDesConnectes.setText(listeDeConnecte);
     }
 }

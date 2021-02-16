@@ -25,16 +25,28 @@ public class ClientConnexion implements Runnable{
 
     @Override
     public void run() {
-        while(!Thread.currentThread().isInterrupted()){
-            try {
-                writer = new PrintWriter(connexion.getOutputStream(), true);
-                reader = new BufferedInputStream(connexion.getInputStream());
+        try {
+            writer = new PrintWriter(connexion.getOutputStream(), true);
+            reader = new BufferedInputStream(connexion.getInputStream());
+            writer.write("__NEW" + name);
+            writer.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
+        while (!Thread.currentThread().isInterrupted()) {
+            try {
                 String response = read();
-                chat.updateChat(response);
+                if (response.startsWith("__LST")) { //Teste si le message est une instruction "update la liste"
+                    chat.setConnecte(response.substring(5));
+                } else {
+                    chat.updateChat(response);
+                }
                 //On essaie en continue de recevoir un message du serveur
-            } catch (IOException e){
+            } catch (IOException e) {
                 e.printStackTrace();
+            } catch (Exception e){
+                System.out.println("Exception: "+e);
             }
         }
     }
@@ -53,6 +65,14 @@ public class ClientConnexion implements Runnable{
     }
 
     public void interrupt(){
-        Thread.currentThread().interrupt();
+        try {
+            writer.write("__CLS" + name);
+            writer.flush();
+            connexion.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            Thread.currentThread().interrupt();
+        }
     }
 }
